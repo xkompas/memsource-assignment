@@ -57,5 +57,7 @@ QVariant ProjectsModel::data(const QModelIndex &index, int role) const
 
 void ProjectsModel::load(const ProjectList &aProjectList)
 {
+    beginResetModel();
     projectList = aProjectList;
+    endResetModel();
 }

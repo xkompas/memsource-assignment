@@ -20,10 +20,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->projectsTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->projectsTableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-
-    loadProjects();
+    ui->projectsTableView->setModel(projectsModel);
 
     QObject::connect(ui->actionExit, SIGNAL(triggered()), qApp, SLOT(quit()));
+
+    loadProjects();
 }
 
 void MainWindow::loadProjects()
@@ -56,8 +57,6 @@ void MainWindow::loadProjects()
     projectList.append(project03);
 
     projectsModel->load(projectList);
-
-    ui->projectsTableView->setModel(projectsModel);
 }
 
 MainWindow::~MainWindow()
