@@ -31,7 +31,8 @@ SOURCES += \
 
 HEADERS += \
         mainwindow.h \
-    projectsmodel.h
+    projectsmodel.h \
+    project.h
 
 FORMS += \
         mainwindow.ui

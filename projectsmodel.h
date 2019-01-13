@@ -2,6 +2,9 @@
 #define PROJECTSMODEL_H
 
 #include <QAbstractTableModel>
+#include "project.h"
+
+using ProjectList = QList<Project>;
 
 class ProjectsModel : public QAbstractTableModel
 {
@@ -19,7 +22,10 @@ public:
 
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
+    void load(const ProjectList &aProjectList);
+
 private:
+     ProjectList projectList;
 };
 
 #endif // PROJECTSMODEL_H
