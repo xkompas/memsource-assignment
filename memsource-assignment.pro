@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -27,12 +27,16 @@ CONFIG += c++11
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    projectsmodel.cpp
+    projectsmodel.cpp \
+    connector.cpp
 
 HEADERS += \
         mainwindow.h \
     projectsmodel.h \
-    project.h
+    project.h \
+    connector.h \
+    response.h \
+    api_token.h
 
 FORMS += \
         mainwindow.ui

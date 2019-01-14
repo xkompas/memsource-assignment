@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "response.h"
+#include "project.h"
 
 QT_FORWARD_DECLARE_CLASS(ProjectsModel)
 
@@ -22,6 +24,9 @@ public:
 private:
     Ui::MainWindow *ui;
     ProjectsModel *projectsModel;
+
+    void processProjectsResponse(const Response &response);
+    QList<Project> parseProjectsJson(const QJsonDocument &jsonDocument);
 };
 
 #endif // MAINWINDOW_H

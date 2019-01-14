@@ -1,17 +1,27 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <functional>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 #include "projectsmodel.h"
+#include "connector.h"
+// TODO add login
+#include "api_token.h"
 
 namespace  {
 
 QDateTime parseDate(const QString text)
 {
-    return QDateTime::fromString(text, "yyyy-MM-ddTHH:mm:ss");
+    // TODO time zones
+    auto lastPlus = text.lastIndexOf("+");
+    auto dateString{(lastPlus == -1) ? text : text.left(lastPlus)};
+    return QDateTime::fromString(dateString, "yyyy-MM-ddTHH:mm:ss");
 }
 
 }
 
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(QWidget *parent):
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     projectsModel(new ProjectsModel)
@@ -29,34 +39,56 @@ MainWindow::MainWindow(QWidget *parent) :
 
 void MainWindow::loadProjects()
 {
-    QStringList target01;
-    target01.append("Afrikaans");
+    Connector *connector = new Connector(this);
+    RequestParams params;
+    params.insert("token", API_TOKEN);
+    connector->get("/api2/v1/projects", params, std::bind(&MainWindow::processProjectsResponse, this, std::placeholders::_1));
+}
 
-    QStringList target02;
-    target02.append("Afrikaans (Namibia)");
-    target02.append("Afrikaans (South Africa)");
-    target02.append("Balochi");
-    target02.append("Bambara");
+void MainWindow::processProjectsResponse(const Response &response)
+{
+    if (!response.ok)
+    {
+        // TODO display error
+        return;
+    }
 
-    QStringList target03;
-    target03.append("German");
-    target03.append("German (Austria)");
-    target03.append("German (Belgium)");
-    target03.append("German (Switzerland)");
-    target03.append("German (Germany)");
-    target03.append("German (Lichtenstein)");
-    target03.append("German (Luxembourg)");
-
-    Project project01{"Project01", "French", target01, parseDate("2019-01-05T17:04:56")};
-    Project project02{"Project02", "Catalan (Spain, Valencia)", target02, parseDate("2019-01-05T17:13:58")};
-    Project project03{"Project03", "Czech (Czech Republic)", target03, parseDate("2019-01-05T17:14:56")};
-
-    ProjectList projectList;
-    projectList.append(project01);
-    projectList.append(project02);
-    projectList.append(project03);
-
+    ProjectList projectList = parseProjectsJson(response.jsonDocument);
     projectsModel->load(projectList);
+}
+
+QList<Project> MainWindow::parseProjectsJson(const QJsonDocument &jsonDocument)
+{
+    QList<Project> projectList;
+
+    if (jsonDocument.isObject())
+    {
+        QJsonObject root = jsonDocument.object();
+        QJsonArray content = root["content"].toArray();
+
+        foreach (const QJsonValue &projectValue, content)
+        {
+            QJsonObject projectObject = projectValue.toObject();
+
+            Project project;
+            project.name = projectObject["name"].toString();
+
+            // TODO translate languages
+            project.sourceLanguage = projectObject["sourceLang"].toString();
+
+            QJsonArray targetLanguages = projectObject["targetLangs"].toArray();
+            foreach (const QJsonValue &targetLanguageValue, targetLanguages)
+            {
+                project.targetLanguages.append(targetLanguageValue.toString());
+            }
+
+            project.created = parseDate(projectObject["dateCreated"].toString());
+
+            projectList.append(project);
+        }
+    }
+
+    return projectList;
 }
 
 MainWindow::~MainWindow()
