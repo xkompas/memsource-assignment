@@ -24,7 +24,8 @@ QDateTime parseDate(const QString text)
 MainWindow::MainWindow(QWidget *parent):
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    projectsModel(new ProjectsModel)
+    connector(new Connector(this)),
+    projectsModel(new ProjectsModel(this))
 {
     ui->setupUi(this);
 
@@ -34,12 +35,62 @@ MainWindow::MainWindow(QWidget *parent):
 
     QObject::connect(ui->actionExit, SIGNAL(triggered()), qApp, SLOT(quit()));
 
+    loadLanguages();
+}
+
+QString MainWindow::codeToLanguage(const QString code) const
+{
+    auto it = languages.constFind(code);
+    if (it == languages.constEnd())
+    {
+        return tr("Unknown");
+    }
+    return it.value();
+}
+
+void MainWindow::loadLanguages()
+{
+    RequestParams params;
+    params.insert("token", API_TOKEN);
+    connector->get("/api2/v1/languages", params, std::bind(&MainWindow::processLanguagesResponse, this, std::placeholders::_1));
+}
+
+void MainWindow::processLanguagesResponse(const Response &response)
+{
+    if (response.ok)
+    {
+        languages = parseLanguagesJson(response.jsonDocument);
+    }
+    // TODO display error
+
     loadProjects();
+}
+
+Languages MainWindow::parseLanguagesJson(const QJsonDocument &jsonDocument)
+{
+    Languages parsedLanguages;
+
+    if (jsonDocument.isObject())
+    {
+        QJsonObject root = jsonDocument.object();
+        QJsonArray languagesArray = root["languages"].toArray();
+
+        foreach (const QJsonValue &languageValue, languagesArray)
+        {
+            QJsonObject language = languageValue.toObject();
+
+            QString code = language["code"].toString();
+            QString name = language["name"].toString();
+
+            parsedLanguages.insert(code, name);
+        }
+    }
+
+    return parsedLanguages;
 }
 
 void MainWindow::loadProjects()
 {
-    Connector *connector = new Connector(this);
     RequestParams params;
     params.insert("token", API_TOKEN);
     connector->get("/api2/v1/projects", params, std::bind(&MainWindow::processProjectsResponse, this, std::placeholders::_1));
@@ -73,13 +124,12 @@ QList<Project> MainWindow::parseProjectsJson(const QJsonDocument &jsonDocument)
             Project project;
             project.name = projectObject["name"].toString();
 
-            // TODO translate languages
-            project.sourceLanguage = projectObject["sourceLang"].toString();
+            project.sourceLanguage = codeToLanguage(projectObject["sourceLang"].toString());
 
             QJsonArray targetLanguages = projectObject["targetLangs"].toArray();
             foreach (const QJsonValue &targetLanguageValue, targetLanguages)
             {
-                project.targetLanguages.append(targetLanguageValue.toString());
+                project.targetLanguages.append(codeToLanguage(targetLanguageValue.toString()));
             }
 
             project.created = parseDate(projectObject["dateCreated"].toString());
