@@ -18,8 +18,11 @@ class Connector : public QObject
 public:
     explicit Connector(QObject *parent = nullptr);
     void get(const QString path, const RequestParams &requestParams, const ProcessResponse &processResponse);
+    void post(const QString path, const RequestParams &requestParams, const ProcessResponse &processResponse);
 
 private:
+    static const QString serverUrl;
+
     QNetworkAccessManager *networkManager;
 
     void processReply(QNetworkReply *reply, const ProcessResponse &processResponse);

@@ -4,10 +4,10 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QTimer>
 #include "projectsmodel.h"
 #include "connector.h"
-// TODO add login
-#include "api_token.h"
+#include "logindialog.h"
 
 namespace  {
 
@@ -33,9 +33,7 @@ MainWindow::MainWindow(QWidget *parent):
     ui->projectsTableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->projectsTableView->setModel(projectsModel);
 
-    QObject::connect(ui->actionExit, SIGNAL(triggered()), qApp, SLOT(quit()));
-
-    loadLanguages();
+    connect(ui->actionExit, SIGNAL(triggered()), qApp, SLOT(quit()));
 }
 
 QString MainWindow::codeToLanguage(const QString code) const
@@ -48,10 +46,73 @@ QString MainWindow::codeToLanguage(const QString code) const
     return it.value();
 }
 
+void MainWindow::showEvent(QShowEvent* event)
+{
+    QWidget::showEvent(event);
+    QTimer::singleShot(0, this, SLOT(initialize()));
+}
+
+void MainWindow::initialize()
+{
+    performLogin();
+}
+
+void MainWindow::performLogin()
+{
+    LoginDialog *loginDialog = new LoginDialog();
+
+    if (loginDialog->exec() == QDialog::Rejected)
+    {
+        qApp->quit();
+        return;
+    }
+
+    QString userName = loginDialog->getUserName();
+    QString password = loginDialog->getPassword();
+
+    delete loginDialog;
+
+    login(userName, password);
+}
+
+void MainWindow::login(const QString userName, const QString password)
+{
+    RequestParams params;
+    params.insert("userName", userName);
+    params.insert("password", password);
+    connector->post("/api2/v1/auth/login", params, std::bind(&MainWindow::processLoginResponse, this, std::placeholders::_1));
+
+}
+
+void MainWindow::processLoginResponse(const Response &response)
+{
+    if (!response.ok)
+    {
+        performLogin();
+        return;
+    }
+
+    apiToken = parseLoginJson(response.jsonDocument);
+    loadLanguages();
+}
+
+QString MainWindow::parseLoginJson(const QJsonDocument &jsonDocument)
+{
+    QString token;
+
+    if (jsonDocument.isObject())
+    {
+        QJsonObject root = jsonDocument.object();
+        token = root["token"].toString();
+    }
+
+    return token;
+}
+
 void MainWindow::loadLanguages()
 {
     RequestParams params;
-    params.insert("token", API_TOKEN);
+    params.insert("token", apiToken);
     connector->get("/api2/v1/languages", params, std::bind(&MainWindow::processLanguagesResponse, this, std::placeholders::_1));
 }
 
@@ -92,7 +153,7 @@ Languages MainWindow::parseLanguagesJson(const QJsonDocument &jsonDocument)
 void MainWindow::loadProjects()
 {
     RequestParams params;
-    params.insert("token", API_TOKEN);
+    params.insert("token", apiToken);
     connector->get("/api2/v1/projects", params, std::bind(&MainWindow::processProjectsResponse, this, std::placeholders::_1));
 }
 

@@ -28,7 +28,8 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     projectsmodel.cpp \
-    connector.cpp
+    connector.cpp \
+    logindialog.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -36,10 +37,11 @@ HEADERS += \
     project.h \
     connector.h \
     response.h \
-    api_token.h
+    logindialog.h
 
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+    logindialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

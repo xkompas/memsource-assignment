@@ -1,7 +1,7 @@
 #include "projectsmodel.h"
 
-ProjectsModel::ProjectsModel(QObject *parent)
-    : QAbstractTableModel(parent)
+ProjectsModel::ProjectsModel(QObject *parent):
+    QAbstractTableModel(parent)
 {
 }
 

@@ -21,15 +21,27 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
+    ~MainWindow() override;
+
+public slots:
+    void initialize();
+
+protected:
+    void showEvent(QShowEvent* event) override;
 
 private:
     Ui::MainWindow *ui;
     Connector *connector;
+    QString apiToken;
     ProjectsModel *projectsModel;
     Languages languages;
 
     QString codeToLanguage(const QString code) const;
+
+    void performLogin();
+    void login(const QString userName, const QString password);
+    void processLoginResponse(const Response &response);
+    QString parseLoginJson(const QJsonDocument &jsonDocument);
 
     void loadLanguages();
     void processLanguagesResponse(const Response &response);

@@ -4,9 +4,13 @@
 #include <QUrlQuery>
 #include <QNetworkRequest>
 #include <QNetworkReply>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <functional>
 
 using namespace std;
+
+const QString Connector::serverUrl{"https://cloud.memsource.com/web"};
 
 Connector::Connector(QObject *parent):
     QObject(parent),
@@ -16,8 +20,6 @@ Connector::Connector(QObject *parent):
 
 void Connector::get(const QString path, const RequestParams &requestParams, const ProcessResponse &processResponse)
 {
-    QString server{"https://cloud.memsource.com/web"};
-
     QUrlQuery query;
 
     for (RequestParams::const_iterator it = requestParams.constBegin(), end = requestParams.constEnd(); it != end; ++it)
@@ -25,7 +27,7 @@ void Connector::get(const QString path, const RequestParams &requestParams, cons
         query.addQueryItem(it.key(), it.value());
     }
 
-    QUrl serviceUrl{server + path};
+    QUrl serviceUrl{serverUrl + path};
     serviceUrl.setQuery(query);
 
     QSslConfiguration sslConfig = QSslConfiguration::defaultConfiguration();
@@ -34,7 +36,38 @@ void Connector::get(const QString path, const RequestParams &requestParams, cons
     QNetworkRequest request{serviceUrl};
     request.setSslConfiguration(sslConfig);
 
+
     QNetworkReply *reply = networkManager->get(request);
+
+    connect(reply, &QNetworkReply::finished, std::bind(&Connector::processReply, this, reply, processResponse));
+}
+
+void Connector::post(const QString path, const RequestParams &requestParams, const ProcessResponse &processResponse)
+{
+    QJsonDocument json;
+    QJsonObject data;
+
+    for (RequestParams::const_iterator it = requestParams.constBegin(), end = requestParams.constEnd(); it != end; ++it)
+    {
+        data[it.key()] = it.value();
+    }
+
+    json.setObject(data);
+    QByteArray jsonPost = QJsonDocument(data).toJson();
+
+    QUrl serviceUrl{serverUrl + path};
+
+    QSslConfiguration sslConfig = QSslConfiguration::defaultConfiguration();
+    sslConfig.setProtocol(QSsl::TlsV1_2);
+
+    QNetworkRequest request{serviceUrl};
+    request.setSslConfiguration(sslConfig);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/json; charset=utf-8"));
+    request.setHeader(QNetworkRequest::ContentLengthHeader, QByteArray::number(jsonPost.size()));
+
+    QNetworkAccessManager *networkManager = new QNetworkAccessManager(this);
+
+    QNetworkReply *reply = networkManager->post(request, jsonPost);
 
     connect(reply, &QNetworkReply::finished, std::bind(&Connector::processReply, this, reply, processResponse));
 }
