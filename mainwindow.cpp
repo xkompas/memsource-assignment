@@ -13,7 +13,6 @@ namespace  {
 
 QDateTime parseDate(const QString text)
 {
-    // TODO time zones
     auto lastPlus = text.lastIndexOf("+");
     auto dateString{(lastPlus == -1) ? text : text.left(lastPlus)};
     return QDateTime::fromString(dateString, "yyyy-MM-ddTHH:mm:ss");
@@ -81,7 +80,6 @@ void MainWindow::login(const QString userName, const QString password)
     params.insert("userName", userName);
     params.insert("password", password);
     connector->post("/api2/v1/auth/login", params, std::bind(&MainWindow::processLoginResponse, this, std::placeholders::_1));
-
 }
 
 void MainWindow::processLoginResponse(const Response &response)
