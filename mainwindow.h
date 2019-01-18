@@ -38,7 +38,7 @@ private:
 
     QString codeToLanguage(const QString code) const;
 
-    void performLogin();
+    void performLogin(const QString error = "");
     void login(const QString userName, const QString password);
     void processLoginResponse(const Response &response);
     QString parseLoginJson(const QJsonDocument &jsonDocument);

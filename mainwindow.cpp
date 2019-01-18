@@ -56,9 +56,10 @@ void MainWindow::initialize()
     performLogin();
 }
 
-void MainWindow::performLogin()
+void MainWindow::performLogin(const QString errorMessage)
 {
     LoginDialog *loginDialog = new LoginDialog();
+    loginDialog->setErrorMessage(errorMessage);
 
     if (loginDialog->exec() == QDialog::Rejected)
     {
@@ -86,7 +87,7 @@ void MainWindow::processLoginResponse(const Response &response)
 {
     if (!response.ok)
     {
-        performLogin();
+        performLogin(response.errorMessage);
         return;
     }
 

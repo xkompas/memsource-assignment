@@ -8,12 +8,17 @@ LoginDialog::LoginDialog(QWidget *parent):
     ui->setupUi(this);
 }
 
-QString LoginDialog::getUserName()
+void LoginDialog::setErrorMessage(const QString errorMessage)
+{
+    ui->errorMessageLabel->setText(errorMessage);
+}
+
+QString LoginDialog::getUserName() const
 {
     return ui->userNameEdit->text();
 }
 
-QString LoginDialog::getPassword()
+QString LoginDialog::getPassword() const
 {
     return ui->passwordEdit->text();
 }

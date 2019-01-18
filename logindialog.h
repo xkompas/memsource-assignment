@@ -15,8 +15,9 @@ public:
     explicit LoginDialog(QWidget *parent = nullptr);
     ~LoginDialog();
 
-    QString getUserName();
-    QString getPassword();
+    void setErrorMessage(const QString errorMessage);
+    QString getUserName() const;
+    QString getPassword() const;
 
 private:
     Ui::LoginDialog *ui;

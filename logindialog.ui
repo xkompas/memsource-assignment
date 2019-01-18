@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>352</width>
-    <height>167</height>
+    <height>182</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,9 +17,9 @@
    <property name="geometry">
     <rect>
      <x>9</x>
-     <y>19</y>
+     <y>9</y>
      <width>331</width>
-     <height>135</height>
+     <height>161</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -47,6 +47,13 @@
      <widget class="QLineEdit" name="passwordEdit">
       <property name="echoMode">
        <enum>QLineEdit::Password</enum>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="errorMessageLabel">
+      <property name="text">
+       <string/>
       </property>
      </widget>
     </item>
