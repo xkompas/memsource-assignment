@@ -120,7 +120,10 @@ void MainWindow::processLanguagesResponse(const Response &response)
     {
         languages = parseLanguagesJson(response.jsonDocument);
     }
-    // TODO display error
+    else
+    {
+        ui->statusBar->showMessage(tr("Error loading languages: ") + response.errorMessage);
+    }
 
     loadProjects();
 }
@@ -159,7 +162,7 @@ void MainWindow::processProjectsResponse(const Response &response)
 {
     if (!response.ok)
     {
-        // TODO display error
+        ui->statusBar->showMessage(tr("Error loading projects: ") + response.errorMessage);
         return;
     }
 
